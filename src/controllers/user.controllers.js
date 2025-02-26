@@ -8,7 +8,6 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 const registerUser = asyncHandler(async (req, res) => {
     //getting user details from frontend
     const { username, fullName, email, password } = req.body;
-    console.log(username, fullName, email, password);
 
     //validating whether the required fields are empty or not
     if (
@@ -29,7 +28,16 @@ const registerUser = asyncHandler(async (req, res) => {
 
     //checking whether avatar file exists or not
     const avatarLocalPath = req.files?.avatar[0]?.path;
-    const coverImageLocalPath = req.files?.coverImage[0]?.path;
+
+    // const coverImageLocalPath = req.files?.coverImage[0]?.path;
+    let coverImageLocalPath;
+    if (
+        req.files &&
+        Array.isArray(req.files.coverImage) &&
+        req.files.coverImage.length > 0
+    ) {
+        coverImageLocalPath = req.files.coverImage[0].path;
+    }
 
     if (!avatarLocalPath) {
         throw new ApiError(400, "Avatar file is required.");
