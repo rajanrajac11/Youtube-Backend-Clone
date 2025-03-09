@@ -4,6 +4,7 @@ import { User } from "../models/user.models.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import jwt from "jsonwebtoken";
+import mongoose from "mongoose";
 
 const generateAccessAndRefreshTokens = async (userId) => {
   try {
@@ -394,6 +395,64 @@ const getUserChannleProfile = asyncHandler(async (req, res) => {
     .json(
       new ApiResponse(200, channel[0], "User channel fetched successfully.")
     );
+  //the return of lookup is array so sending the frontend the first element of the
+  //array which is required object
+});
+
+const getWatchHistory = asyncHandler(async (req, res) => {
+  const user = await User.aggregate([
+    {
+      $match: {
+        _id: new mongoose.Types.ObjectId(String(req.user._id)),
+      },
+    },
+    {
+      $lookup: {
+        from: "videos",
+        localField: "watchHistory",
+        foreignField: "_id",
+        as: "watchHistory",
+        //sub-pipeline while getting the document of videos the owner is empty
+        //so right after above join again executing join to get owner info
+        pipeline: [
+          {
+            $lookup: {
+              from: "users",
+              localField: "owner",
+              foreignField: "_id",
+              as: "owner",
+              pipeline: [
+                {
+                  $project: {
+                    username: 1,
+                    fullName: 1,
+                    avatar: 1,
+                  },
+                },
+              ],
+            },
+          },
+          {
+            $addFields: {
+              owner: {
+                $first: "$owner",
+              },
+            },
+          },
+        ],
+      },
+    },
+  ]);
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        user[0].watchHistory,
+        "User watch History fetched successfully."
+      )
+    );
 });
 
 export {
@@ -407,4 +466,5 @@ export {
   updateUserAvatar,
   updateUserCoverImage,
   getUserChannleProfile,
+  getWatchHistory,
 };
