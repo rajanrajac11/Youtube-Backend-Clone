@@ -317,6 +317,11 @@ const updateUserCoverImage = asyncHandler(async (req, res) => {
   if (!coverImageLocalPath) {
     throw new ApiError(400, "CoverImage file is required.");
   }
+  //deleting the previous coverImage from cloudinary
+  const deletedCoverImageFromCloudinary = await deleteFromCloudinary(
+    req.user.coverImagePublicId,
+    "image"
+  );
   const coverImage = await uploadOnCloudinary(coverImageLocalPath);
   if (!coverImage.url) {
     throw new ApiError(400, "Error while uploading CoverImage.");
