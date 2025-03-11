@@ -157,7 +157,7 @@ const logoutUser = asyncHandler(async (req, res) => {
     req.user._id,
     {
       $unset: {
-        refreshToken: 1,
+        refreshToken: 1, //removes the field from the document
       },
     },
     {
