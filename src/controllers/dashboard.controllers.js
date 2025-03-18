@@ -82,11 +82,6 @@ const getChannelVideos = asyncHandler(async (req, res) => {
       },
     },
     {
-      $match: {
-        username: username?.toLowerCase(),
-      },
-    },
-    {
       $lookup: {
         from: "videos",
         localField: "_id",
@@ -97,13 +92,15 @@ const getChannelVideos = asyncHandler(async (req, res) => {
     //projecting only the required details of video of a channel for dashboard
     {
       $project: {
-        videoFile: 1,
-        thumbnail: 1,
-        title: 1,
-        description: 1,
-        duration: 1,
-        views: 1,
-        isPublished: 1,
+        videos: {
+          videoFile: 1,
+          thumbnail: 1,
+          title: 1,
+          description: 1,
+          duration: 1,
+          views: 1,
+          isPublished: 1,
+        },
       },
     },
   ]);
@@ -113,7 +110,11 @@ const getChannelVideos = asyncHandler(async (req, res) => {
   res
     .status(200)
     .json(
-      new ApiResponse(200, channel[0], "Channel videos fetched successfully.")
+      new ApiResponse(
+        200,
+        channel[0].videos,
+        "Channel videos fetched successfully."
+      )
     );
 });
 
