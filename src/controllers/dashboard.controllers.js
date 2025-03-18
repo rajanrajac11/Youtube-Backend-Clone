@@ -1,0 +1,120 @@
+import { asyncHandler } from "../utils/asyncHandler.js";
+import { User } from "../models/user.models.js";
+import mongoose from "mongoose";
+import { ApiError } from "../utils/ApiError.js";
+import { ApiResponse } from "../utils/ApiResponse.js";
+
+const getChannelStatus = asyncHandler(async (req, res) => {
+  const { username } = req.user;
+  const channel = await User.aggregate([
+    {
+      $match: {
+        username: username?.toLowerCase(),
+      },
+    },
+    {
+      $lookup: {
+        from: "subscriptions",
+        localField: "_id",
+        foreignField: "channel",
+        as: "subscribers",
+      },
+    },
+    {
+      $lookup: {
+        from: "subscriptions",
+        localField: "_id",
+        foreignField: "subscriber",
+        as: "subscribedTo",
+      },
+    },
+    {
+      $lookup: {
+        from: "videos",
+        localField: "_id",
+        foreignField: "owner",
+        as: "videos",
+        pipeline: [
+          {
+            $lookup: {
+              from: "likes",
+              localField: "_id",
+              foreignField: "video",
+              as: "likes",
+            },
+          },
+          {
+            $addFields: {
+              likesCount: { $size: "$likes" },
+            },
+          },
+        ],
+      },
+    },
+    {
+      $unwind: "$videos", // Flatten the videos array
+    },
+    {
+      $addFields: {
+        subscriberCount: { $size: "$subscribers" },
+        subscribedToCount: { $size: "$subscribedTo" },
+        videoCount: { $size: "$videos" },
+        totalLikesCount: { $sum: "$videos.likesCount" }, // Sum likesCount across all videos
+      },
+    },
+  ]);
+  if (!channel.length) {
+    throw new ApiError(404, "Channel not found.");
+  }
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(200, channel[0], "Channel status fetched successfully.")
+    );
+});
+const getChannelVideos = asyncHandler(async (req, res) => {
+  const { username } = req.user;
+
+  const channel = await User.aggregate([
+    {
+      $match: {
+        username: username?.toLowerCase(),
+      },
+    },
+    {
+      $match: {
+        username: username?.toLowerCase(),
+      },
+    },
+    {
+      $lookup: {
+        from: "videos",
+        localField: "_id",
+        foreignField: "owner",
+        as: "videos",
+      },
+    },
+    //projecting only the required details of video of a channel for dashboard
+    {
+      $project: {
+        videoFile: 1,
+        thumbnail: 1,
+        title: 1,
+        description: 1,
+        duration: 1,
+        views: 1,
+        isPublished: 1,
+      },
+    },
+  ]);
+  if (!channel.length) {
+    throw new ApiError(404, "No videos found for this channel.");
+  }
+  res
+    .status(200)
+    .json(
+      new ApiResponse(200, channel[0], "Channel videos fetched successfully.")
+    );
+});
+
+export { getChannelStatus, getChannelVideos };
