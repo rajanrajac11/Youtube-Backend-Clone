@@ -26,9 +26,7 @@ const deleteFromCloudinary = async (publicId, resourceType) => {
         type: "upload",
         resource_type: resourceType,
       })
-      .then(() => {
-        console.log("deleted");
-      });
+      .then(() => {});
 
     return;
   } catch (error) {
