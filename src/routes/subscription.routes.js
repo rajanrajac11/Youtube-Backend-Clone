@@ -16,3 +16,5 @@ router
 router
   .route("/get-subscribed-channels/:subscriberId")
   .get(verifyJWT, getSubscribedChannels);
+
+export default router;
