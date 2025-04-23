@@ -77,6 +77,13 @@ const getPlaylistById = asyncHandler(async (req, res) => {
       },
     },
   ]);
+
+  if (playlists.length === 0) {
+    throw new ApiError(404, "Playlist not found");
+  }
+  return res
+    .status(200)
+    .json(new ApiResponse(200, playlists[0], "Playlist fetched successfully"));
 });
 
 const addVideoToPlayList = asyncHandler(async (req, res) => {
