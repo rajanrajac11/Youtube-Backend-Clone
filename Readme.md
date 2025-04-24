@@ -58,7 +58,7 @@ This is a YouTube backend clone built with **Node.js**, **Express**, and **Mongo
 1. **Clone the repository**
 
     ```bash
-    git clone https://github.com/your-username/youtube-backend-clone.git
+    git clone https://github.com/rajanrajac11/youtube-backend-clone.git
     cd youtube-backend-clone
     ```
 
