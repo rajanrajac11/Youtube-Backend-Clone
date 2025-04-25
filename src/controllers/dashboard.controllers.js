@@ -3,6 +3,7 @@ import { User } from "../models/user.models.js";
 import mongoose from "mongoose";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
+import { ref } from "process";
 
 const getChannelStatus = asyncHandler(async (req, res) => {
   const { username } = req.user;
@@ -52,17 +53,23 @@ const getChannelStatus = asyncHandler(async (req, res) => {
       },
     },
     {
-      $unwind: "$videos", // Flatten the videos array
-    },
-    {
       $addFields: {
         subscriberCount: { $size: "$subscribers" },
         subscribedToCount: { $size: "$subscribedTo" },
         videoCount: { $size: "$videos" },
-        totalLikesCount: { $sum: "$videos.likesCount" }, // Sum likesCount across all videos
+        totalLikesCount: { $sum: "$videos.likesCount" },
+      },
+    },
+    {
+      $project: {
+        password: 0,
+        refreshToken: 0,
+        avatarPublicId: 0,
+        coverImagePublicId: 0,
       },
     },
   ]);
+
   if (!channel.length) {
     throw new ApiError(404, "Channel not found.");
   }
