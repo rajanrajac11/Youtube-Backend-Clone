@@ -1,25 +1,31 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { Subscription } from "../models/subscription.models.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
+import { ApiError } from "../utils/ApiError.js";
 const toggleSubscription = asyncHandler(async (req, res) => {
   const { channelId } = req.params;
-  const userId = req.user._id;
   const isSubscribed = await Subscription.findOne({
-    userId: req.user._id,
-    channelId: channelId,
+    subscriber: req.user._id,
+    channel: channelId,
   });
+
   if (isSubscribed) {
-    await Subscription.deleteOne({
-      userId: req.user._id,
-      channelId: channelId,
-    });
+    const deletedSubscription = await Subscription.findByIdAndDelete(
+      isSubscribed._id
+    );
+    if (!deletedSubscription) {
+      throw new ApiError(500, "Unsubscription failed");
+    }
     return res
       .status(200)
-      .json(new ApiResponse(200, "Unsubscribed successfully", null));
+      .json(
+        new ApiResponse(200, deletedSubscription, "Unsubscribed successfully")
+      );
   }
+
   const subscription = await Subscription.create({
-    userId: req.user._id,
-    channelId: channelId,
+    subscriber: req.user._id,
+    channel: channelId,
   });
   if (!subscription) {
     throw new ApiError(500, "Subscription failed");
