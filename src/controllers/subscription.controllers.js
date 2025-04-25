@@ -2,6 +2,7 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { Subscription } from "../models/subscription.models.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { ApiError } from "../utils/ApiError.js";
+import mongoose from "mongoose";
 const toggleSubscription = asyncHandler(async (req, res) => {
   const { channelId } = req.params;
   const isSubscribed = await Subscription.findOne({
@@ -39,9 +40,7 @@ const getUserChannelSubscribers = asyncHandler(async (req, res) => {
   const { channelId } = req.params;
   const subscribers = await Subscription.aggregate([
     {
-      $match: {
-        channel: channelId,
-      },
+      $match: { channel: new mongoose.Types.ObjectId(String(channelId)) },
     },
     {
       $lookup: {
@@ -49,31 +48,35 @@ const getUserChannelSubscribers = asyncHandler(async (req, res) => {
         localField: "subscriber",
         foreignField: "_id",
         as: "subscriber",
+        pipeline: [
+          {
+            $project: {
+              username: 1,
+              email: 1,
+              fullName: 1,
+              avatar: 1,
+              _id: 1,
+            },
+          },
+        ],
       },
     },
     {
       $unwind: "$subscriber",
     },
     {
-      $project: {
-        channel: 0,
-        subscriber: {
-          _id: "$subscriber._id",
-          fullName: "$subscriber.fullName",
-          avatar: "$subscriber.avatar",
-          email: "$subscriber.email",
-        },
-      },
+      $replaceRoot: { newRoot: "$subscriber" },
     },
   ]);
-  if (!subscribers || subscribers.length === 0) {
+
+  if (subscribers.length === 0) {
     throw new ApiError(404, "No subscribers found");
   }
-  const subscribersList = subscribers.map((s) => s.subscriber);
+
   return res
     .status(200)
     .json(
-      new ApiResponse(200, subscribersList, "Subscribers fetched successfully")
+      new ApiResponse(200, subscribers, "Subscribers fetched successfully")
     );
 });
 
