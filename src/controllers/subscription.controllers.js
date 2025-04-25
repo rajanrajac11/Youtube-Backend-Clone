@@ -85,7 +85,7 @@ const getSubscribedChannels = asyncHandler(async (req, res) => {
   const subscribedChannels = await Subscription.aggregate([
     {
       $match: {
-        subscriber: subscriberId,
+        subscriber: new mongoose.Types.ObjectId(String(subscriberId)),
       },
     },
     {
@@ -94,33 +94,38 @@ const getSubscribedChannels = asyncHandler(async (req, res) => {
         localField: "channel",
         foreignField: "_id",
         as: "channel",
+        pipeline: [
+          {
+            $project: {
+              _id: 1,
+              fullName: 1,
+              avatar: 1,
+              coverImage: 1,
+            },
+          },
+        ],
       },
     },
     {
       $unwind: "$channel",
     },
     {
-      $project: {
-        subscriber: 0,
-        channel: {
-          _id: "$channel._id",
-          fullName: "$channel.fullName",
-          avatar: "$channel.avatar",
-          email: "$channel.email",
-        },
+      $replaceRoot: {
+        newRoot: "$channel",
       },
     },
   ]);
+  console.log(subscribedChannels);
+
   if (!subscribedChannels || subscribedChannels.length === 0) {
     throw new ApiError(404, "No subscribed channels found");
   }
-  const channelsList = subscribedChannels.map((s) => s.channel);
   return res
     .status(200)
     .json(
       new ApiResponse(
         200,
-        channelsList,
+        subscribedChannels,
         "Subscribed channels fetched successfully"
       )
     );
