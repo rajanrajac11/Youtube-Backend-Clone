@@ -96,21 +96,8 @@ const getChannelVideos = asyncHandler(async (req, res) => {
         as: "videos",
       },
     },
-    //projecting only the required details of video of a channel for dashboard
-    {
-      $project: {
-        videos: {
-          videoFile: 1,
-          thumbnail: 1,
-          title: 1,
-          description: 1,
-          duration: 1,
-          views: 1,
-          isPublished: 1,
-        },
-      },
-    },
   ]);
+
   if (!channel.length) {
     throw new ApiError(404, "No videos found for this channel.");
   }
