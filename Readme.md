@@ -7,6 +7,8 @@ This is a YouTube backend clone built with **Node.js**, **Express**, and **Mongo
 
 <pre lang="markdown"> ``` . ├── public/ # Static files (temporary uploads, etc.) ├── src/ │ ├── controllers/ # Route handler logic │ ├── db/ # Database connection │ ├── middlewares/ # Authentication, file uploads │ ├── models/ # Mongoose models for database │ ├── routes/ # Express routes │ └── utils/ # Utilities (e.g., error handling, cloudinary config) ``` </pre>
 
+##Data Modeling reference
+https://app.eraser.io/workspace/YtPqZ1VogxGy1jzIDkzj
 
 ## 🚀 Features
 
