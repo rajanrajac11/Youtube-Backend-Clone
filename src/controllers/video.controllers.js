@@ -24,7 +24,7 @@ const getAllVideos = asyncHandler(async (req, res) => {
 
   const total = await Video.countDocuments(filter);
 
-  const videos = await Video.find()
+  const videos = await Video.find({ isPublished: true })
     .limit(limit)
     .skip((page - 1) * limit)
     .sort({ [sortBy]: sortType === "asc" ? 1 : -1 })
