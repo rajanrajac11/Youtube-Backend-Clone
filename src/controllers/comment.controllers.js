@@ -3,6 +3,7 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { Video } from "../models/video.models.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
+import { Comment } from "../models/comments.models.js";
 
 const getVideoComments = asyncHandler(async (req, res) => {
   const { videoId } = req.params;
@@ -13,7 +14,7 @@ const getVideoComments = asyncHandler(async (req, res) => {
   const comments = await Video.aggregate([
     {
       $match: {
-        _id: mongoose.Types.ObjectId(videoId),
+        _id: new mongoose.Types.ObjectId(String(videoId)),
       },
     },
     {
@@ -22,29 +23,19 @@ const getVideoComments = asyncHandler(async (req, res) => {
         localField: "_id",
         foreignField: "video",
         as: "comments",
-        pipeline: [
-          {
-            $lookup: {
-              from: "users",
-              localField: "owner",
-              foreignField: "_id",
-              as: "owner",
-            },
-          },
-          {
-            $addFields: {
-              owner: {
-                $first: "$owner",
-              },
-            },
-          },
-          {
-            $skip: (page - 1) * limit,
-          },
-          {
-            $limit: parseInt(limit),
-          },
-        ],
+      },
+    },
+    {
+      $unwind: "$comments",
+    },
+    {
+      $replaceRoot: {
+        newRoot: "$comments",
+      },
+    },
+    {
+      $project: {
+        video: 0,
       },
     },
   ]);
@@ -84,6 +75,12 @@ const updateComment = asyncHandler(async (req, res) => {
   if (!content) {
     throw new ApiError(400, "Content is required");
   }
+
+  const isCommentExists = await Comment.findById(commentId);
+  if (!isCommentExists) {
+    throw new ApiError(404, "Comment not found");
+  }
+
   const comment = await Comment.findByIdAndUpdate(
     commentId,
     {
@@ -108,6 +105,12 @@ const deleteComment = asyncHandler(async (req, res) => {
   if (!commentId) {
     throw new ApiError(400, "Comment ID is required");
   }
+
+  const isCommentExists = await Comment.findById(commentId);
+  if (!isCommentExists) {
+    throw new ApiError(404, "Comment not found");
+  }
+
   const comment = await Comment.findByIdAndDelete(commentId);
   if (!comment) {
     throw new ApiError(500, "Failed to delete comment");
