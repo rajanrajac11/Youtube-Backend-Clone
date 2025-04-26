@@ -28,19 +28,23 @@ const getAllVideos = asyncHandler(async (req, res) => {
     .limit(limit)
     .skip((page - 1) * limit)
     .sort({ [sortBy]: sortType === "asc" ? 1 : -1 })
-    .populate("owner", "name email")
+    .populate("owner", "fullName avatar")
     .exec();
 
   res.status(200).json(
-    new ApiResponse(200, {
-      videos,
-      pagination: {
-        total,
-        page,
-        limit,
-        totalPages: Meth.ceil(total / limit),
+    new ApiResponse(
+      200,
+      {
+        videos,
+        pagination: {
+          total,
+          page,
+          limit,
+          totalPages: Math.ceil(total / limit),
+        },
       },
-    })
+      "All videos fetched successfully"
+    )
   );
 });
 
