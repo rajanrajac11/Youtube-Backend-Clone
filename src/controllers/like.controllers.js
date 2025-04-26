@@ -80,7 +80,7 @@ const toggleCommentLike = asyncHandler(async (req, res) => {
   }
   return res
     .status(200)
-    .json(new ApiResponse(201, {}, "Comment liked successfully"));
+    .json(new ApiResponse(201, newLike, "Comment liked successfully"));
 });
 
 const toggleTweetLike = asyncHandler(async (req, res) => {
@@ -105,7 +105,7 @@ const toggleTweetLike = asyncHandler(async (req, res) => {
     return res
       .status(200)
       .json(
-        new ApiResponse(200, {}, "Like removed successfully in the comment.")
+        new ApiResponse(200, {}, "Like removed successfully in the tweet.")
       );
   }
 
@@ -121,11 +121,10 @@ const toggleTweetLike = asyncHandler(async (req, res) => {
   }
   return res
     .status(200)
-    .json(new ApiResponse(201, {}, "Tweet liked successfully"));
+    .json(new ApiResponse(201, newLike, "Tweet liked successfully"));
 });
 
 const getLikedVideos = asyncHandler(async (req, res) => {
-  const userId = req.user._id;
   const likedVideos = await User.aggregate([
     {
       $match: {
@@ -167,6 +166,8 @@ const getLikedVideos = asyncHandler(async (req, res) => {
   }
   return res
     .status(200)
-    .json(new ApiResponse(200, likedVideos, "Liked videos fetched."));
+    .json(
+      new ApiResponse(200, likedVideos, "Liked videos fetched successfully.")
+    );
 });
 export { toggleVideoLike, toggleCommentLike, toggleTweetLike, getLikedVideos };
