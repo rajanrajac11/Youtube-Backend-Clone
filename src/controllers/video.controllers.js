@@ -49,7 +49,7 @@ const getAllVideos = asyncHandler(async (req, res) => {
 });
 
 const publishAVideo = asyncHandler(async (req, res) => {
-  const { title, description } = req.body;
+  const { title, description, isPublished } = req.body;
 
   //validating the request body
   if ([title, description].some((field) => field?.trim() === "")) {
@@ -88,6 +88,7 @@ const publishAVideo = asyncHandler(async (req, res) => {
     thumbnail: thumbnailUploaded.secure_url,
     duration: videoUploaded.duration,
     owner: req.user._id,
+    isPublished: isPublished || false,
   });
 
   res
