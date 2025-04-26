@@ -105,7 +105,7 @@ const addVideoToPlayList = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Video already exists in the playlist");
   }
 
-  playlist.videos.push(videoId);
+  playlist.videos.push({_id: videoId });
   await playlist.save();
   return res
     .status(200)
